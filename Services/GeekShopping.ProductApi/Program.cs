@@ -1,4 +1,6 @@
 using GeekShopping.ProductApi.Model.Context;
+using GeekShopping.ProductApi.Repositories;
+using GeekShopping.ProductApi.Repositories.contracts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -13,7 +15,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "ProductApi",
+        Title = "GeekShopping.ProductApi",
         Version = "v1", 
         Description = "Microsserviço produtos", 
         Contact = new OpenApiContact
@@ -33,7 +35,9 @@ options.UseMySql(
     )
 );
     
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
 var app = builder.Build();
 
