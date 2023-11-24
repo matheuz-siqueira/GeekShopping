@@ -16,7 +16,7 @@ public class CartController : ControllerBase
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
     }
 
-    [HttpGet("find-cart/{id}")]
+    [HttpGet("find-cart/{userId}")]
     public async Task<ActionResult<CartVO>> GetById(string userId)
     {
         var cart = await _repository.GetCartByUserId(userId); 
