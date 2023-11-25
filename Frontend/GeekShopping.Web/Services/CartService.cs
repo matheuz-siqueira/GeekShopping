@@ -77,7 +77,7 @@ public class CartService : ICartService
             throw new Exception("Something went wrong when calling API");
     }
 
-    public async Task<CartHeaderViewModel> Checkout(
+    public async Task<object> Checkout(
         string token, CartHeaderViewModel model)
     {
         _client.DefaultRequestHeaders.Authorization = 
