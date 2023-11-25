@@ -1,4 +1,5 @@
 using GeekShopping.CartApi.Model.Context;
+using GeekShopping.CartApi.RabbitMQSender;
 using GeekShopping.CartApi.Repository;
 using GeekShopping.CartApi.Repository.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -64,6 +65,7 @@ options.UseMySql(
 );
 
 builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<IRabbitMQMessageSender, RabbitMQMessageSender>();
 
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
