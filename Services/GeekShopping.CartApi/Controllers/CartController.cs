@@ -1,4 +1,5 @@
 using GeekShopping.CartApi.Data.ValueObjects;
+using GeekShopping.CartApi.Messages;
 using GeekShopping.CartApi.Repository.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
@@ -70,4 +71,15 @@ public class CartController : ControllerBase
             return NotFound(); 
         return Ok(status);
     }
+
+    [HttpPost("checkout")]
+    public async Task<ActionResult<CheckoutHeaderVO>> Checkout(CheckoutHeaderVO vo)
+    {
+        var cart = await _repository.GetCartByUserId(vo.UserId);
+        if(cart is null)
+            return NotFound(); 
+        vo.CartDetails = cart.CartDetails; 
+        vo.DateTime = DateTime.Now;
+        return Ok(vo); 
+    }   
 }
