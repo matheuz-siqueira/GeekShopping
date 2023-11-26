@@ -12,6 +12,7 @@ public class RabbitMQMessageSender : IRabbitMQMessageSender
     private readonly string _password; 
     private readonly string _userName; 
     private IConnection _connection;
+    private const string ExchangeName = "FanoutPaymentUpdateExchange";
 
     public RabbitMQMessageSender()
     {
@@ -19,16 +20,16 @@ public class RabbitMQMessageSender : IRabbitMQMessageSender
         _password = "guest"; 
         _userName = "guest"; 
     }
-    public void SendMessage(BaseMessage message, string queueName)
+    public void SendMessage(BaseMessage message)
     {
         if(ConnectionExists()){
             using var chanel = _connection.CreateModel(); 
-            chanel.QueueDeclare(queue: queueName, false, false, false, arguments: null);
+            chanel.ExchangeDeclare(ExchangeName, ExchangeType.Fanout, durable: false);
 
             byte[] body = GetMessageAsByteArray(message);
 
             chanel.BasicPublish(
-                exchange: "", routingKey: queueName, basicProperties: null, body: body);
+                exchange: ExchangeName, routingKey: "", basicProperties: null, body: body);
         }
     }
 
