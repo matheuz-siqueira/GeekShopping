@@ -1,7 +1,6 @@
-using GeekShopping.CouponApi.Model.Context;
-using GeekShopping.CouponApi.Repository;
-using GeekShopping.CouponApi.Repository.Contracts;
-using Microsoft.EntityFrameworkCore;
+using GeekShopping.PaymentApi.MessageConsumer;
+using GeekShopping.PaymentApi.RabbitMQSender;
+using GeekShopping.PaymentProcessor;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -11,13 +10,22 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+builder.Services.AddSingleton<IProcessPayment, ProcessPayment>();
+
+builder.Services.AddSingleton<IRabbitMQMessageSender, RabbitMQMessageSender>();
+builder.Services.AddHostedService<RabbitMQPaymentConsumer>();
+
+
+
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => 
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "GeekShopping.CouponApi",
+        Title = "GeekShopping.PaymentApi",
         Version = "v1", 
-        Description = "Microsserviço cupon de desconto", 
+        Description = "Microsserviço de pagamento", 
         Contact = new OpenApiContact
         {
             Name = "Matheus Siqueira", 
@@ -25,7 +33,6 @@ builder.Services.AddSwaggerGen(c =>
             Url = new Uri("https://github.com/matheuz-siqueira")
         }
     });
-    c.EnableAnnotations();
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = @"Enter 'Bearer' [space] and your token", 
@@ -54,18 +61,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-options.UseMySql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection")),
-        b => b.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
-    )
-);
-
-builder.Services.AddScoped<ICouponRepository, CouponRepository>();
-
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer" ,options => 
     {
@@ -86,7 +81,6 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -94,13 +88,11 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = SameSiteMode.Strict });
 }
 
 app.UseHttpsRedirection();
 
 app.UseAuthentication(); 
-
 app.UseAuthorization();
 
 app.MapControllers();
