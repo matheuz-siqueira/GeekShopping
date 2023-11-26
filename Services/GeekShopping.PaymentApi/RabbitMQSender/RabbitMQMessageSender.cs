@@ -12,7 +12,9 @@ public class RabbitMQMessageSender : IRabbitMQMessageSender
     private readonly string _password; 
     private readonly string _userName; 
     private IConnection _connection;
-    private const string ExchangeName = "FanoutPaymentUpdateExchange";
+    private const string ExchangeName = "DirectPaymentUpdateExchange";
+    private const string PaymentEmailUpdateQueueName = "PaymentEmailUpdateQueueName";
+    private const string PaymentOrderUpdateQueueName = "PaymentOrderUpdateQueueName";
 
     public RabbitMQMessageSender()
     {
@@ -24,12 +26,21 @@ public class RabbitMQMessageSender : IRabbitMQMessageSender
     {
         if(ConnectionExists()){
             using var chanel = _connection.CreateModel(); 
-            chanel.ExchangeDeclare(ExchangeName, ExchangeType.Fanout, durable: false);
+            chanel.ExchangeDeclare(ExchangeName, ExchangeType.Direct, durable: false);
+            chanel.QueueDeclare(PaymentEmailUpdateQueueName, false, false, false, null); 
+            chanel.QueueDeclare(PaymentOrderUpdateQueueName, false, false, false, null); 
+
+            chanel.QueueBind(PaymentEmailUpdateQueueName, ExchangeName, "PaymentEmail");
+            chanel.QueueBind(PaymentOrderUpdateQueueName, ExchangeName, "PaymentOrder");
+
 
             byte[] body = GetMessageAsByteArray(message);
 
             chanel.BasicPublish(
-                exchange: ExchangeName, routingKey: "", basicProperties: null, body: body);
+                exchange: ExchangeName, routingKey: "PaymentEmail", basicProperties: null, body: body);
+        
+            chanel.BasicPublish(
+                exchange: ExchangeName, routingKey: "PaymentOrder", basicProperties: null, body: body);
         }
     }
 
