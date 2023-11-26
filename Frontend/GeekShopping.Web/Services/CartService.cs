@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using GeekShopping.Web.Models;
 using GeekShopping.Web.Services.Contracts;
@@ -85,9 +86,17 @@ public class CartService : ICartService
         
         var response = await _client.PostAsJons($"{BasePath}/checkout", model);
         if(response.IsSuccessStatusCode)
+        {
             return await response.ReadContentAs<CartHeaderViewModel>();
-        else 
+        }
+        else if(response.StatusCode.ToString().Equals("PreconditionFailed"))
+        {
+            return "Coupon Price has changed, please confirm!";
+        } 
+        else
+        {
             throw new Exception("Something went wrong when calling API");
+        }
     }
 
     public Task<bool> ClearCart(string userId, string token)
