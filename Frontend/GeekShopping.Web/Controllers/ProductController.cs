@@ -14,8 +14,7 @@ public class ProductController : Controller
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
     }
-
-    [Authorize]
+    
     public async Task<IActionResult> ProductIndex()
     {
         var token = await HttpContext.GetTokenAsync("access_token");
